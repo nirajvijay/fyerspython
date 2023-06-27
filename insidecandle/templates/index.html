@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Website</title>
+</head>
+<body>
+    <h1>Welcome to My Website</h1>
+    <form method="post">
+        {% csrf_token %}
+        <input type="submit" value="Generate Auth Code">
+    </form>
+</body>
+</html>
