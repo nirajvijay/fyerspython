@@ -76,6 +76,10 @@ def index(request):
         )
         response = session.generate_token()
         access_token = response['access_token']
-        return HttpResponse(access_token)
+        return render(request, 'success.html', {'auth_code': auth_code})
     else:
         return render(request, 'index.html')
+
+def success(request):
+    auth_code = request.GET.get('auth_code', '')
+    return render(request, 'success.html', {'auth_code': auth_code})
