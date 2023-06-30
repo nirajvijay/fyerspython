@@ -7,8 +7,6 @@ import pyotp
 from selenium import webdriver
 import time
 
-
-
 def generate_auth_code():
     client_id = 'C3HL2IWT0X-100'
     secret_key = 'PHA683XHJN'
@@ -18,6 +16,7 @@ def generate_auth_code():
     pin2 = '7'
     pin3 = '2'
     pin4 = '7'
+    driver_path = '/usr/local/bin/chromedriver'
 
     session = accessToken.SessionModel(
         client_id=client_id,
@@ -28,7 +27,10 @@ def generate_auth_code():
     )
 
     response = session.generate_authcode()
-    driver = webdriver.Chrome()
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--headless')
+    driver = webdriver.Chrome(executable_path=driver_path, options=chrome_options)
+
     driver.get(response)
     driver.find_element(By.XPATH, '//*[@id="login_client_id"]').click()
     driver.find_element(By.XPATH, '//*[@id="fy_client_id"]').send_keys(username)
