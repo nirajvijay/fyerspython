@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from django.http import HttpResponse
 from fyers_api import fyersModel
 from fyers_api import accessToken
 from selenium.webdriver.common.by import By
 import pyotp
 from selenium import webdriver
 import time
+from selenium.webdriver.chrome.options import Options
 
 def generate_auth_code():
     client_id = 'C3HL2IWT0X-100'
@@ -16,7 +16,7 @@ def generate_auth_code():
     pin2 = '7'
     pin3 = '2'
     pin4 = '7'
-    driver_path = '/usr/local/bin/chromedriver'
+    driver_path = '/usr/local/bin/chromedriver'  # Replace with actual path to chromedriver executable
 
     session = accessToken.SessionModel(
         client_id=client_id,
@@ -27,11 +27,13 @@ def generate_auth_code():
     )
 
     response = session.generate_authcode()
-    chrome_options = webdriver.ChromeOptions()
+    chrome_options = Options()
     chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--no-sandbox')  # Add this line to fix sandbox error
-    chrome_options.add_argument('--disable-dev-shm-usage')  # Add this line to fix shm error
-    driver = webdriver.Chrome(options=chrome_options)  # Remove executable_path argument
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.binary_location = '/usr/bin/google-chrome'
+
+    driver = webdriver.Chrome(options=chrome_options)
 
     driver.get(response)
     driver.find_element(By.XPATH, '//*[@id="login_client_id"]').click()
@@ -63,6 +65,7 @@ def generate_auth_code():
 
     return auth_code
 
+
 def index(request):
     if request.method == 'POST':
         auth_code = generate_auth_code()
@@ -71,15 +74,15 @@ def index(request):
             secret_key='PHA683XHJN',
             redirect_uri='https://www.google.com/',
             response_type='code',
-            grant_type='authorization_code',
-            auth_code=auth_code
+            grant_type='authorization_code'
         )
+        session.set_token(auth_code)
         response = session.generate_token()
         access_token = response['access_token']
-        return render(request, 'success.html', {'auth_code': auth_code})
+
+        with open('access.txt', 'w') as f:
+            f.write(access_token)
+
+        return render(request, 'result.html', {'access_token': access_token})
     else:
         return render(request, 'index.html')
-
-def success(request):
-    auth_code = request.GET.get('auth_code', '')
-    return render(request, 'success.html', {'auth_code': auth_code})
