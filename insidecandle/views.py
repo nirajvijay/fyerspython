@@ -29,7 +29,9 @@ def generate_auth_code():
     response = session.generate_authcode()
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('--headless')
-    driver = webdriver.Chrome(executable_path=driver_path, options=chrome_options)
+    chrome_options.add_argument('--no-sandbox')  # Add this line to fix sandbox error
+    chrome_options.add_argument('--disable-dev-shm-usage')  # Add this line to fix shm error
+    driver = webdriver.Chrome(options=chrome_options)  # Remove executable_path argument
 
     driver.get(response)
     driver.find_element(By.XPATH, '//*[@id="login_client_id"]').click()
@@ -69,15 +71,11 @@ def index(request):
             secret_key='PHA683XHJN',
             redirect_uri='https://www.google.com/',
             response_type='code',
-            grant_type='authorization_code'
+            grant_type='authorization_code',
+            auth_code=auth_code
         )
-        session.set_token(auth_code)
         response = session.generate_token()
         access_token = response['access_token']
-
-        with open('access.txt', 'w') as f:
-            f.write(access_token)
-
-        print(access_token)
-
-    return render(request, 'index.html')
+        return HttpResponse(access_token)
+    else:
+        return render(request, 'index.html')
